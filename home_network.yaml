@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    container_name: nginx-proxy-manager
+    ports:
+      - 80:80
+      - 81:81
+      - 443:443
+    volumes:
+      - /mnt/media_server/nginx/letsencrypt:/etc/letsencrypt
+      - /mnt/media_server/nginx/data:/data
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    restart: unless-stopped
+    container_name: heimdall
+    ports:
+      - 680:80
+      - 6443:443
+    volumes:
+      - /mnt/media_server/heimdall/config:/config
+    depends_on:
+      - nginx-proxy-manager
+  nextcloud:
+    image: lscr.io/linuxserver/nextcloud:latest
+    container_name: nextcloud
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Europe/Amsterdam
+    volumes:
+      - /mnt/media_server_2/nextcloud/config:/config
+      - /mnt/media_server_2/nextcloud/data:/data
+    restart: unless-stopped

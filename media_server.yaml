@@ -1,0 +1,77 @@
+version: "3.8"
+services:
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    restart: unless-stopped
+    networks:
+      - home_network_default
+    ports:
+      - 8080:8080
+    environment:
+      TZ: Europe/Amsterdam
+      PUID: 1001
+      PGID: 1001
+    volumes:
+      - /mnt/media_server/downloads:/ext_downloads
+      - /mnt/media_server/incomplete-downloads:/ext_incomplete-downloads
+      - /mnt/media_server/sabnzbd/incomplete-downloads:/incomplete-downloads
+      - /mnt/media_server/sabnzbd/config:/config
+      - /mnt/media_server/sabnzbd/downloads:/downloads
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    networks:
+      - home_network_default
+    ports:
+      - 8989:8989
+    volumes:
+      - /mnt/media_server/sonarr/config:/config
+      - /mnt/media_server/downloads:/ext_downloads
+      - /mnt/media_server/shows:/tv
+      - /mnt/media_server_2/shows:/tv2
+    environment:
+      TZ: Europe/Amsterdam
+      PUID: 1001
+      PGID: 1001
+    depends_on:
+      - sabnzbd
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    restart: unless-stopped
+    container_name: radarr
+    networks:
+      - home_network_default
+    ports:
+      - 7878:7878
+    volumes:
+      - /mnt/media_server/movies:/movies
+      - /mnt/media_server/radarr/config:/config
+      - /mnt/media_server/downloads:/ext_downloads
+      - /mnt/media_server_2/movies:/movies2
+    environment:
+      TZ: Europe/Amsterdam
+      PUID: 1001
+      PGID: 1001
+    depends_on:
+      - sabnzbd
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    networks:
+      - home_network_default
+    ports:
+      - 8096:8096
+    volumes:
+      - /mnt/media_server/jellyfin/config:/config
+      - /mnt/media_server/movies:/data/movies
+      - /mnt/media_server/shows:/data/tvshows
+      - /mnt/media_server_2/movies:/data/movies2
+      - /mnt/media_server_2/shows:/data/tv2
+    environment:
+      JELLYFIN_PublishedServerUrl: 192.168.0.106
+      TZ: Europe/Amsterdam
+      PGID: 1001
+      PUID: 1001
