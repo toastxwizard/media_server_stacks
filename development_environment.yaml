@@ -1,6 +1,8 @@
 networks:
   gitea:
     external: false
+  home_network_default:
+    external: true
 services:
   gitea-server:
     image: gitea/gitea:1.20.4
@@ -41,33 +43,4 @@ services:
       - gitea
     volumes:
       - /mnt/media_server/gitea_db:/var/lib/mysql
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins
-    restart: unless-stopped
-    privileged: true
-    networks:
-      - home_network_default
-    ports:
-      - 9080:8080
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-  nexus:
-    image: sonatype/nexus3:latest
-    restart: unless-stopped
-    container_name: nexus
-    networks:
-      - home_network_default
-    ports:
-      - 8081:8081
-  socat:
-    image: alpine/socat:latest
-    restart: unless-stopped
-    container_name: socat
-    networks:
-      - home_network_default
-    ports:
-      - 127.0.0.1:2376:2375
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: tcp-listen:2375,fork,reuseaddr unix-connect:/var/run/docker.sock
+

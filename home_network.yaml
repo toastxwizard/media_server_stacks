@@ -1,4 +1,6 @@
 version: "3.8"
+volumes:
+  mealie-data: null
 services:
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
@@ -9,27 +11,43 @@ services:
       - 81:81
       - 443:443
     volumes:
-      - /mnt/media_server/nginx/letsencrypt:/etc/letsencrypt
-      - /mnt/media_server/nginx/data:/data
-  heimdall:
-    image: lscr.io/linuxserver/heimdall:latest
+      - /etc/media_server_config/nginx/letsencrypt:/etc/letsencrypt
+      - /etc/media_server_config/nginx/data:/data
+  mealie:
+    container_name: mealie
+    image: ghcr.io/mealie-recipes/mealie:latest
     restart: unless-stopped
-    container_name: heimdall
-    ports:
-      - 680:80
-      - 6443:443
     volumes:
-      - /mnt/media_server/heimdall/config:/config
-    depends_on:
-      - nginx-proxy-manager
-  nextcloud:
-    image: lscr.io/linuxserver/nextcloud:latest
-    container_name: nextcloud
+      - mealie-data:/app/data/
+    ports:
+      - 9091:9000
     environment:
+      ALLOW_SIGNUP: "true"
+      LOG_LEVEL: DEBUG
+      DB_ENGINE: sqlite # Optional: 'sqlite', 'postgres'  
+  homarr:
+    container_name: homarr
+    image: ghcr.io/ajnart/homarr:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock #
+    ports:
+      - 7575:7575
+    environment:
+      - TZ=Europe/Amsterdam
       - PUID=1001
       - PGID=1001
-      - TZ=Europe/Amsterdam
-    volumes:
-      - /mnt/media_server_2/nextcloud/config:/config
-      - /mnt/media_server_2/nextcloud/data:/data
+  glances:
+    container_name: glances
+    image: nicolargo/glances:latest
     restart: unless-stopped
+    pid: host
+    privileged: true
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - GLANCES_OPT=-w
+      - TZ=Europe/Amsterdam
+networks:
+  home_network: {}
