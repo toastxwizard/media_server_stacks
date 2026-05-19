@@ -64,9 +64,29 @@ services:
       - /etc/media_server_config/jellyfin/config:/config
       - /mnt/media_server/movies:/data/movies
       - /mnt/media_server/shows:/data/tvshows
+      - /mnt/media_server/music:/data/music
     environment:
       JELLYFIN_PublishedServerUrl: 192.168.2.7
       TZ: Europe/Amsterdam
       PGID: 1001
       PUID: 1001
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    restart: unless-stopped
+    networks:
+      - home_network_default
+    environment:
+      TZ: Europe/Amsterdam
+      PGID: 1001
+      PUID: 1001
+    ports:
+      - 8686:8686
+    volumes:
+      - lidarr_config:/config
+      - /mnt/media_server/music:/music
+      - /mnt/media_server/downloads:/ext_downloads
 networks:
+  home_network_default:
+    external: true
+volumes:
+  lidarr_config: null
